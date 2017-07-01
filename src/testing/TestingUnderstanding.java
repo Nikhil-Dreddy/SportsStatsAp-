@@ -14,7 +14,7 @@ public class TestingUnderstanding {
 			Document doc  = Jsoup.connect("http://basketball.realgm.com/nba/stats").userAgent("mozilla/17.0").get();
 			Elements temp = doc.select("div.overall-leader");
 			for(Element Player: temp) {
-				System.out.println(""+Player.getElementsByTag("a").text());
+				System.out.println(" "+Player.getElementsByTag("a").text());
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
