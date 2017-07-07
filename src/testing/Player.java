@@ -3,10 +3,10 @@ package testing;
 public class Player {
 	protected String Name;
 	protected String Position;
-	protected String Age;
+	protected int Age;
 	protected String Team;
-	protected String GamesPlayed;
-	protected String GamesStarted;
+	protected int GamesPlayed;
+	protected int GamesStarted;
 	protected String MinutesPlayed;
 	protected String FiedGoals;
 	protected String FieldGoalPercentage;
@@ -19,14 +19,14 @@ public class Player {
 	protected String FT;
 	protected String FTA;
 	protected String FTpercentage;
-	protected String ORB;
-	protected String DRB;
-	protected String TRB;
-	protected String Assit;
+	protected double ORB;
+	protected double DRB;
+	protected double TRB;
+	protected double Assit;
 	protected String Steals;
 	protected String Blocks;
-	protected String PPG;
-	public Player(String Name,String Pos,String Age,String Tm,String G,String GS,String MP,String FG,String FG2,String three,String threePA,String threepercent,String TRB,String AST,String Steal,String BLK) {
+	protected double PPG;
+	public Player(String Name,String Pos,int Age,String Tm,int G,int GS,String MP,String FG,String FG2,String three,String threePA,String threepercent,int TRB,int AST,String Steal,String BLK) {
 		this.Name = Name;
 		this.Position = Pos;
 		this.Age = Age;
@@ -44,7 +44,7 @@ public class Player {
 		this.Steals = Steal;
 		this.Blocks = BLK;
 	}
-	public Player(String Name,String Pos,String Age,String Tm,String G,String GS,String AST,String TRB,String PPG) {
+	public Player(String Name,String Pos,int Age,String Tm,int G,int GS,double AST,double TRB,double PPG) {
 		this.Name = Name;
 		this.Position = Pos;
 		this.Team = Tm;
