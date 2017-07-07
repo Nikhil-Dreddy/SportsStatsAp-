@@ -12,7 +12,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class TestingUnderstanding {
-	public Object[][] GetPlayerData(){
+	public Object[][] GetPlayerData() throws IOException{
 		ArrayList<Player> Player = this.intilazePlayerData();
 		Object[][] PlayerData = new Object[Player.size()][9];
 		for(int i = 0;i<Player.size();i++) {
@@ -28,28 +28,28 @@ public class TestingUnderstanding {
 		}
 		return PlayerData;
 	}
-	public ArrayList<Player> intilazePlayerData() {
+	public Integer NumberOfRows() throws IOException {
+		Document doc  = Jsoup.connect("http://www.basketball-reference.com/leagues/NBA_2017_per_game.html").userAgent("mozilla/17.0").get();
+		Elements Table = doc.select("table");
+		int NumberOfRows = 0;
+		for(Element table : Table.select("tr")){
+			Elements A = table.select("td");
+			NumberOfRows++;
+		}
+		return NumberOfRows;
+	}
+	public ArrayList<Player> intilazePlayerData() throws IOException{
 		Map<String,Player> PlayerMap = new HashMap<String,Player>();
 		ArrayList<Player> PlayerData = new ArrayList<Player>();
-		try {
-			Document doc  = Jsoup.connect("http://www.basketball-reference.com/leagues/NBA_2017_per_game.html").userAgent("mozilla/17.0").get();
-			Elements Table = doc.select("table");;
-			int Counter = 1;
-			for(Element Row:Table.select("tr")) {
-				if(Row.text().equals("Rk Player Pos Age Tm G GS MP FG FGA FG% 3P 3PA 3P% 2P 2PA 2P% eFG% FT FTA FT% ORB DRB TRB AST STL BLK TOV PF PS/G" )){
-					continue;
-				}
-				Elements A = Row.select("td");
-				PlayerMap.put(A.get(0).text(),new Player(A.get(0).text(),A.get(1).text(),A.get(2).text(),A.get(3).getElementsByTag("a").text(),A.get(4).text(),A.get(5).text(),A.get(23).text(),A.get(22).text(),A.get(28).text()));
-				PlayerData.add(new Player(A.get(0).text(),A.get(1).text(),A.get(2).text(),A.get(3).text(),A.get(4).text(),A.get(5).text(),A.get(23).text(),A.get(22).text(),A.get(28).text()));
-				if(Row.text().equals("Rk Player Pos Age Tm G GS MP FG FGA FG%")|Counter == 500) {
-					break;
-				}
-				Counter++;
+		Document doc  = Jsoup.connect("http://www.basketball-reference.com/leagues/NBA_2017_per_game.html").userAgent("mozilla/17.0").get();
+		Elements Table = doc.select("table");
+		for(Element Row:Table.select("tr")) {
+			Elements A = Row.select("td");
+			if(A.isEmpty()) {
+				continue;
 			}
-		}
-		catch (IOException e) {
-			e.printStackTrace();
+			PlayerMap.put(A.get(0).text(),new Player(A.get(0).text(),A.get(1).text(),A.get(2).text(),A.get(3).getElementsByTag("a").text(),A.get(4).text(),A.get(5).text(),A.get(23).text(),A.get(22).text(),A.get(28).text()));
+			PlayerData.add(new Player(A.get(0).text(),A.get(1).text(),A.get(2).text(),A.get(3).text(),A.get(4).text(),A.get(5).text(),A.get(23).text(),A.get(22).text(),A.get(28).text()));
 		}
 		return PlayerData;
 	}
