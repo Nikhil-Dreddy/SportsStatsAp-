@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -18,7 +21,10 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SwingWorker;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
@@ -29,7 +35,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-
 public class SportsGUI extends JPanel implements TableModelListener {
 	/**
 	 * 
@@ -37,10 +42,10 @@ public class SportsGUI extends JPanel implements TableModelListener {
 	private static final long serialVersionUID = 1L;
 	String[] coulmnNames = {"Name","Pos","Age","Team","GP","GS","AST","TRB","PPG"};
 	String[] Team = { "ATL", "BOS", "BRK", "CHI", "CHO","CLE","DAL","DEN","DET","GSW","HOU","IND","LAC","LAL","MEM","MIA","MIL","MIN","NOP"
-			,"NYK","OKC","ORL","PHI","PHO","PHX","POR","SAC","SAS","TOR","UTA","WAS","All Teams"};
+			,"NYK","OKC","ORL","PHI","PHX","POR","SAC","SAS","TOR","UTA","WAS","All Teams","Traded Players"};
 	TestingUnderstanding A = new TestingUnderstanding();
 	private JButton _updateBtn;
-	private JTextArea _outputLog;
+	private JTextField _outputLog;
 	private Object[][] PlayerData;
 	private ArrayList<Player> PlayerArray = A.intilazePlayerData();
 	private JTable _table;
@@ -66,9 +71,55 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		@Override
 		protected Void doInBackground() throws Exception {
 			int i = 0;
+			if(this.Team.equals("Traded Players")) {
+				this.Team = "TOT";
+			}
 			for(Player B: CurrentData){
 				Vector<Comparable> A = new Vector<Comparable>();
 				if(B.Team.equals(Team) || Team.equals("All Teams")) {
+					A.add(B.Name);
+					A.add(B.Position);
+					A.add(B.Age);
+					A.add(B.Team);
+					A.add(B.GamesPlayed);
+					A.add(B.GamesStarted);
+					A.add(B.Assit);
+					A.add(B.TRB);
+					A.add(B.PPG);
+					publish(A);
+				}
+				i++;
+			}
+			return null;
+		}
+		protected void process(List<Vector> rowsList)
+		{
+			for(Vector row : rowsList){
+				DefaultTableModel tModel = (DefaultTableModel)_table.getModel();
+				tModel.addRow(row);
+				tModel.fireTableDataChanged();
+			}
+		}
+
+	}
+	public class PlayerWorker extends SwingWorker<Void,Vector>{
+		private Object[] PlayerData;
+		private DefaultTableModel Table;
+		private ArrayList<Player> CurrentData;
+		private String Player;
+
+		public PlayerWorker(ArrayList<Player> PlayerData,String PlayerName,DefaultTableModel Table){
+			this.CurrentData = PlayerData;
+			this.Player = PlayerName;
+			this.Table = Table;
+			this.PlayerData = new Object[8];
+		}
+		@Override
+		protected Void doInBackground() throws Exception {
+			int i = 0;
+			for(Player B: CurrentData){
+				Vector<Comparable> A = new Vector<Comparable>();
+				if(B.Name.equals(Player)) {
 					A.add(B.Name);
 					A.add(B.Position);
 					A.add(B.Age);
@@ -104,7 +155,7 @@ public class SportsGUI extends JPanel implements TableModelListener {
 
 		@Override
 		protected Void doInBackground() throws Exception {
-			if(TeamName.equals( "All Teams")) {
+			if(TeamName.equals( "All Teams")||TeamName.equals("Traded Players")) {
 				TeamIcon =  new ImageIcon("C:/Users/Nikhil/Desktop/NBA PROJECT/SportStats/teamlogos/ABA.png");
 			}
 			else{
@@ -146,13 +197,62 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		}
 
 	};
+	private ActionListener OutPutListener = new ActionListener() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			String PlayerName = _outputLog.getText();
+			DefaultTableModel tModel = (DefaultTableModel)_table.getModel();
+			tModel.setRowCount(0); 
+			PlayerWorker b = new PlayerWorker(PlayerArray,PlayerName,model);
+			b.execute();
+			TeamIconWorker Icon = new TeamIconWorker("ABA");
+			Icon.execute();
+			_table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+			_table.getColumnModel().getColumn(0).setPreferredWidth(140);
+			_table.getColumnModel().getColumn(1).setPreferredWidth(40);
+			_table.getColumnModel().getColumn(2).setPreferredWidth(40);
+			_table.getColumnModel().getColumn(3).setPreferredWidth(40);
+			_table.getColumnModel().getColumn(4).setPreferredWidth(40);
+			_table.getColumnModel().getColumn(5).setPreferredWidth(40);
+			_table.getColumnModel().getColumn(6).setPreferredWidth(40);
+			_table.getColumnModel().getColumn(7).setPreferredWidth(40);
+			_table.getColumnModel().getColumn(8).setPreferredWidth(40);
+		}
+
+	};
+	Action action = new AbstractAction()
+	{
+	    @Override
+	    public void actionPerformed(ActionEvent e)
+	    {
+	    	String PlayerName = _outputLog.getText();
+			DefaultTableModel tModel = (DefaultTableModel)_table.getModel();
+			tModel.setRowCount(0); 
+			PlayerWorker b = new PlayerWorker(PlayerArray,PlayerName,model);
+			b.execute();
+			TeamIconWorker Icon = new TeamIconWorker("ABA");
+			Icon.execute();
+			_table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+			_table.getColumnModel().getColumn(0).setPreferredWidth(140);
+			_table.getColumnModel().getColumn(1).setPreferredWidth(40);
+			_table.getColumnModel().getColumn(2).setPreferredWidth(40);
+			_table.getColumnModel().getColumn(3).setPreferredWidth(40);
+			_table.getColumnModel().getColumn(4).setPreferredWidth(40);
+			_table.getColumnModel().getColumn(5).setPreferredWidth(40);
+			_table.getColumnModel().getColumn(6).setPreferredWidth(40);
+			_table.getColumnModel().getColumn(7).setPreferredWidth(40);
+			_table.getColumnModel().getColumn(8).setPreferredWidth(40);
+	    }
+	};
 
 	public SportsGUI() throws IOException {
-		_updateBtn = new JButton("UpdateButton");
-		_outputLog = new JTextArea(1,1);
-		_outputLog.setEditable(false);
+		_updateBtn = new JButton("SearchButton");
+		_outputLog = new JTextField();
+		_outputLog.setEditable(true);
+		_outputLog.addActionListener(action);
 		JComboBox TeamList = new JComboBox(Team);
 		TeamList.addActionListener(ComboListener);
+		_updateBtn.addActionListener(OutPutListener);
 		PlayerData = A.GetPlayerData();
 		TableModel model = new DefaultTableModel(PlayerData,coulmnNames){
 			Class[] types = { String.class, String.class, Integer.class,
@@ -176,7 +276,7 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		RightPanel.add(_updateBtn,BorderLayout.NORTH);
 		RightPanel.add(_outputLog,BorderLayout.SOUTH);
 		RightPanel.add(TeamList,BorderLayout.WEST);
-		_outputLog.append("Lebron Is Great");
+		_outputLog.setText(("Lebron Is Great"));
 		ImageIcon myPicture =  new ImageIcon("C:/Users/Nikhil/Desktop/NBA PROJECT/SportStats/teamlogos/ABA.png");
 		picLabel = new JLabel(myPicture);
 		RightPanel.add(picLabel,BorderLayout.CENTER);
@@ -203,7 +303,7 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		_table.getColumnModel().getColumn(0).setPreferredWidth(140);
 		_table.getColumnModel().getColumn(1).setPreferredWidth(40);
 		_table.getColumnModel().getColumn(2).setPreferredWidth(40);
-		_table.getColumnModel().getColumn(3).setPreferredWidth(40);
+		_table.getColumnModel().getColumn(3).setPreferredWidth(45);
 		_table.getColumnModel().getColumn(4).setPreferredWidth(40);
 		_table.getColumnModel().getColumn(5).setPreferredWidth(40);
 		_table.getColumnModel().getColumn(6).setPreferredWidth(40);
@@ -215,6 +315,13 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					try {
+						        UIManager.setLookAndFeel("com.seaglasslookandfeel.SeaGlassLookAndFeel");
+					} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+							| UnsupportedLookAndFeelException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					createAndShowGUI();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
