@@ -55,6 +55,7 @@ public class SportsGUI extends JPanel implements TableModelListener {
 	String[] coulmnNames = {"Name","Pos","Age","Team","GP","GS","AST","TRB","PPG"};
 	String[] Team = { "ATL", "BOS", "BRK", "CHI", "CHO","CLE","DAL","DEN","DET","GSW","HOU","IND","LAC","LAL","MEM","MIA","MIL","MIN","NOP"
 			,"NYK","OKC","ORL","PHI","PHO","POR","SAC","SAS","TOR","UTA","WAS","All Teams","Traded Players"};
+	String[] SeasoncolumnNames = {"Season","Team","GP","GS","MPG","STL","BLK","AST","TRB","PPG"};
 	TestingUnderstanding A = new TestingUnderstanding();
 	private JButton _updateBtn;
 	private JTextField _outputLog;
@@ -68,6 +69,8 @@ public class SportsGUI extends JPanel implements TableModelListener {
 	private JLabel picLabel;
 	private JLabel playerLabel;
 	private JPanel RightPanel;
+	private JScrollPane playerScroll;
+	private JTable _playerTable;
 	private TableModelListener TeamListener;
 	ImageIcon myPicture =  new ImageIcon("C:/Users/Nikhil/Desktop/NBA PROJECT/SportStats/teamlogos/ABA.png");
 	public class TeamWorker extends SwingWorker<Void,Vector>{
@@ -223,8 +226,15 @@ public class SportsGUI extends JPanel implements TableModelListener {
 			else {
 				String PlayerName = _table.getValueAt(_table.getSelectedRow(), 0).toString();
 				_outputLog.setText(PlayerName);
-				TeamIconWorker Icon = new TeamIconWorker("PHO",playerLabel);
-				Icon.execute();				 	
+				DefaultTableModel tModel = (DefaultTableModel)_playerTable.getModel();
+				tModel.setRowCount(0); 
+				PlayerStats Player = new PlayerStats(PlayerName, tModel);
+				try {
+					Player.execute();
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 	});
@@ -297,12 +307,19 @@ public class SportsGUI extends JPanel implements TableModelListener {
 				return this.types[columnIndex];
 			}
 		};
+		TableModel playermodel = new DefaultTableModel(PlayerData,SeasoncolumnNames ){
+			Class[] types = { String.class, String.class, Integer.class,
+					Integer.class,Double.class,Double.class,Double.class,Double.class,Double.class,Double.class,
+					Double.class,Double.class};
+			@Override
+			public Class getColumnClass(int columnIndex) {
+				return this.types[columnIndex];
+			}
+		};
 		model.addTableModelListener(this);
-		_table = new JTable(model);
-		_table.getSelectionModel().addListSelectionListener( PlayerSelect);
-		_table.setDefaultEditor(Object.class, null);
-		_table.setFillsViewportHeight(true);
-		_table.setAutoCreateRowSorter(true);
+		this.Overalltable(model);
+		this.PlayerTable(playermodel);
+		playerScroll = new JScrollPane(_playerTable);
 		scrollPane = new JScrollPane(_table);
 		topPanel = new JPanel();
 		this.SetColumnSizes(_table);
@@ -332,6 +349,7 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		JPanel RightPanel = new JPanel(new BorderLayout());
 		JTabbedPane tabbedPane = new JTabbedPane();
 		RightPanel.add(playerLabel);
+		RightPanel.add(playerScroll);
 		_outputLog.setText(("Lebron Is Goat"));;
 		tabbedPane.addTab("topPanel", box);
 		tabbedPane.addTab("RightPanel", RightPanel);
@@ -399,5 +417,19 @@ public class SportsGUI extends JPanel implements TableModelListener {
 	@Override
 	public void tableChanged(TableModelEvent e) {
 		_table.repaint();
+	}
+	public void Overalltable(TableModel m) {
+		_table = new JTable(m);
+		_table.getSelectionModel().addListSelectionListener( PlayerSelect);
+		_table.setDefaultEditor(Object.class, null);
+		_table.setFillsViewportHeight(true);
+		_table.setAutoCreateRowSorter(true);
+	}
+
+	public void PlayerTable(TableModel m) {
+		_playerTable = new JTable(m);
+		_playerTable.setDefaultEditor(Object.class, null);
+		_playerTable.setFillsViewportHeight(true);
+		_playerTable.setAutoCreateRowSorter(true);
 	}
 }
