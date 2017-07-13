@@ -1,6 +1,9 @@
 package testing;
 
 import java.awt.List;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,64 +31,50 @@ public class TestingUnderstanding {
 		}
 		return PlayerData;
 	}
-	public Object[][] GetTeamData(String Team) throws IOException{
-		ArrayList<Player> Player = this.intilazeTeamData(Team);
-		Object[][] PlayerData = new Object[Player.size()][9];
-		for(int i = 0;i<Player.size();i++) {
-			PlayerData[i][0] = Player.get(i).Name;
-			PlayerData[i][1] = Player.get(i).Position;
-			PlayerData[i][2] = (int)Player.get(i).Age;
-			PlayerData[i][3] = Player.get(i).Team;
-			PlayerData[i][4] = (int)Player.get(i).GamesPlayed;
-			PlayerData[i][5] = (int)Player.get(i).GamesStarted;
-			PlayerData[i][6] = (double)Player.get(i).Assit;
-			PlayerData[i][7] = (double)Player.get(i).TRB;
-			PlayerData[i][8] = (double)Player.get(i).PPG;
-		}
-		return PlayerData;
-	}
-	public Integer NumberOfRows() throws IOException {
-		Document doc  = Jsoup.connect("http://www.basketball-reference.com/leagues/NBA_2017_per_game.html").userAgent("mozilla/17.0").get();
-		Elements Table = doc.select("table");
-		int NumberOfRows = 0;
-		for(Element table : Table.select("tr")){
-			Elements A = table.select("td");
-			NumberOfRows++;
-		}
-		return NumberOfRows;
-	}
 	public ArrayList<Player> intilazePlayerData() throws IOException{
 		Map<String,Player> PlayerMap = new HashMap<String,Player>();
 		ArrayList<Player> PlayerData = new ArrayList<Player>();
-		Document doc  = Jsoup.connect("http://www.basketball-reference.com/leagues/NBA_2017_per_game.html").userAgent("mozilla/17.0").get();
-		Elements Table = doc.select("table");
-		for(Element Row:Table.select("tr")) {
-			Elements A = Row.select("td");
-			if(A.isEmpty()) {
-				continue;
+		BufferedReader br = null;
+		String line = "";
+		String cvsSplitBy = ",";
+		String[] Lines = new String[50];
+		String FilePath = "C:/Users/Nikhil/Desktop/NBA PROJECT/SportStats/2016-2017 Stats.csv";
+		try {
+			br = new BufferedReader(new FileReader(FilePath));
+			Lines[0] = "1";
+			//Processing Data only after we read the line #Data 
+			while ((line = br.readLine()) != null && !Lines[0].equals("Rk")) {
+				// using tab as a separator
+				Lines = line.split(cvsSplitBy);
 			}
-			PlayerData.add(new Player(A.get(0).text(),A.get(1).text(),Integer.parseInt(A.get(2).text()),A.get(3).text(),Integer.parseInt(A.get(4).text()),Integer.parseInt(A.get(5).text())
-					,Double.parseDouble(A.get(23).text()),Double.parseDouble(A.get(22).text()),Double.parseDouble(A.get(28).text())));
+			while((line = br.readLine()) != null) {
+				// using tab as a separator
+				Lines = line.split(cvsSplitBy);
+				Lines[1] = Lines[1].substring(0, Lines[1].indexOf('\\'));
+				
+				PlayerData.add(new Player(Lines[1],Lines[2],Integer.parseInt(Lines[3]),Lines[4],Integer.parseInt(Lines[5]),Integer.parseInt(Lines[6]),
+						Double.parseDouble(Lines[24]),Double.parseDouble(Lines[23]),Double.parseDouble(Lines[29])));
+
+			}
+
+		} catch (FileNotFoundException e) {
+			// Catches our exception 
+			e.printStackTrace();
+		} catch (IOException e) {
+			// Catches our exception
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					// close the data file 
+					br.close();
+				} catch (IOException e) {
+					// if it can't catches the exception
+					e.printStackTrace();
+				}
+			}
 		}
 		return PlayerData;
 	}
-	private ArrayList<Player> intilazeTeamData(String Team) throws IOException {
-		ArrayList<Player> PlayerData = new ArrayList<Player>();
-		Document doc  = Jsoup.connect("http://www.basketball-reference.com/leagues/NBA_2017_per_game.html").userAgent("mozilla/17.0").get();
-		Elements Table = doc.select("table");
-		for(Element Row:Table.select("tr")) {
-			Elements A = Row.select("td");
-			if(A.isEmpty()) {
-				continue;
-			}
-			if(A.get(3).text().equals(Team)||Team.equals("All Teams")) {
-				PlayerData.add(new Player(A.get(0).text(),A.get(1).text(),Integer.parseInt(A.get(2).text()),A.get(3).text(),Integer.parseInt(A.get(4).text()),Integer.parseInt(A.get(5).text())
-						,Double.parseDouble(A.get(23).text()),Double.parseDouble(A.get(22).text()),Double.parseDouble(A.get(28).text())));
-			}
-			else {
-				continue;
-			}
-		}
-		return PlayerData;
-	}
+
 }
