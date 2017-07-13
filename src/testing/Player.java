@@ -7,7 +7,7 @@ public class Player {
 	protected   String Team;
 	protected   int GamesPlayed;
 	protected   int GamesStarted;
-	protected   String MinutesPlayed;
+	protected   double MinutesPlayed;
 	protected   String FiedGoals;
 	protected   String FieldGoalPercentage;
 	protected   String ThreePointers;
@@ -23,10 +23,11 @@ public class Player {
 	protected   double DRB;
 	protected   double TRB;
 	protected   double Assit;
-	protected   String Steals;
-	protected   String Blocks;
+	protected   double Steals;
+	protected   double Blocks;
 	protected   double PPG;
-	public Player(String Name,String Pos,int Age,String Tm,int G,int GS,String MP,String FG,String FG2,String three,String threePA,String threepercent,int TRB,int AST,String Steal,String BLK) {
+	protected 	String Season;
+	public Player(String Name,String Pos,int Age,String Tm,int G,int GS,double MP,String FG,String FG2,String three,String threePA,String threepercent,int TRB,int AST,double Steal,double BLK) {
 		this.Name = Name;
 		this.Position = Pos;
 		this.Age = Age;
@@ -59,5 +60,17 @@ public class Player {
 	public String toString() {
 		String A = this.Name+" "+ this.Position+" "+this.Age+" "+this.Team+" "+this.GamesPlayed+" "+this.GamesStarted+" "+this.Assit+" "+this.TRB+" "+this.PPG;	
 		return A;
+	}
+	public Player(String Season,String Team,int G,int GS ,double MP,double assist,double TRB,double PPG,double Steals,double Blocks) {
+		this.Season = Season;
+		this.Team = Team;
+		this.GamesPlayed = G;
+		this.GamesStarted = GS;
+		this.MinutesPlayed = MP;
+		this.Assit = assist;
+		this.TRB = TRB;
+		this.PPG = PPG;
+		this.Steals = Steals;
+		this.Blocks = Blocks;
 	}
 }
