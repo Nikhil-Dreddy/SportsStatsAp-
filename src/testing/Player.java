@@ -62,7 +62,7 @@ public class Player {
 		String A = this.Name+" "+ this.Position+" "+this.Age+" "+this.Team+" "+this.GamesPlayed+" "+this.GamesStarted+" "+this.Assit+" "+this.TRB+" "+this.PPG;	
 		return A;
 	}
-	public Player(int Age,String Team,int G,int GS ,double MP,double assist,double TRB,double PPG,double Steals,double Blocks) {
+	public Player(int Age,String Team,int G,int GS ,double MP,double assist,double TRB,double PPG,double Steals,double Blocks,String Name) {
 		this.Age = Age;
 		this.Team = Team;
 		this.GamesPlayed = G;
@@ -73,6 +73,7 @@ public class Player {
 		this.PPG = PPG;
 		this.Steals = Steals;
 		this.Blocks = Blocks;
+		this.Name = Name;
 	}
 	public Player(String Name,String Pos,int Age,String Tm,int G,int GS,double AST,double TRB,double PPG,String RefName) {
 		this.Name = Name;
@@ -85,6 +86,11 @@ public class Player {
 		this.TRB = TRB;
 		this.PPG = PPG;
 		this.RefName = RefName;
+	}
+	public Number GetStat(String A) {
+		return Age;
+		
+		
 	}
 	
 }
