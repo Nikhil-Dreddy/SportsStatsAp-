@@ -92,6 +92,7 @@ public class SportsGUI extends JPanel implements TableModelListener {
 	private TableModelListener TeamListener;
 	private String RefName;
 	private JPanel chartPanel;
+	private ArrayList<Player> seasonStats = new ArrayList<Player>();
 	JFreeChart chart;
 	ImageIcon myPicture =  new ImageIcon("Resources/teamlogos/ABA.png");
 	public class TeamWorker extends SwingWorker<Void,Vector>{
@@ -223,12 +224,14 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		private DefaultTableModel Table;
 		private ArrayList<Player> CurrentData;
 		private String RefName;
-		public PlayerStats2(String PlayerName,DefaultTableModel Table,ArrayList<Player> CurrentData) {
+		private String Stat;
+		public PlayerStats2(String PlayerName,DefaultTableModel Table,ArrayList<Player> CurrentData,ArrayList<Player> A,String Stat) {
 			this.PlayerName = PlayerName;
-			this.PlayerData = new ArrayList<Player>();
+			this.PlayerData = A;
 			this.Table = Table;
 			this.SeasonPlayerData = new Object[10][8];
 			this.CurrentData = CurrentData;
+			this.Stat = Stat;
 		}
 		@Override
 		protected Void doInBackground() throws Exception {
@@ -305,14 +308,15 @@ public class SportsGUI extends JPanel implements TableModelListener {
 			
 			DefaultTableModel tModel = (DefaultTableModel)_playerTable.getModel();
 			 final XYSeries series = new XYSeries("PPG");
+			 
 			for(int i = 0;i<tModel.getRowCount();i++) {
-				series.add((int)tModel.getValueAt(i, 0),(double)tModel.getValueAt(i,9 ));
+				series.add((int)tModel.getValueAt(i, 0),(double)tModel.getValueAt(i,_playerTable.getColumn(this.Stat).getModelIndex() ));
 			}
 			    final XYSeriesCollection data = new XYSeriesCollection(series);
 			    final JFreeChart chart2 = ChartFactory.createXYLineChart(
 			        this.PlayerName,
 			        "Age", 
-			        "Points Per Game", 
+			        this.Stat, 
 			        data,
 			        PlotOrientation.VERTICAL,
 			        true,
@@ -362,7 +366,20 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		}
 
 	};
+	
+	private ActionListener PlayerComboListener = new ActionListener() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			JComboBox cb = (JComboBox)e.getSource();
+			String Stat = (String)cb.getSelectedItem();
+			DefaultTableModel tModel = (DefaultTableModel)_playerTable.getModel();
+			String PlayerName = _table.getValueAt(_table.getSelectedRow(), 0).toString();
+			refreshChart(PlayerName, Stat);
+		}
 
+	};
+	
+	
 	private ListSelectionListener PlayerSelect = (new ListSelectionListener(){
 		public void valueChanged(ListSelectionEvent event) {
 			// do some actions here, for example
@@ -375,7 +392,7 @@ public class SportsGUI extends JPanel implements TableModelListener {
 				_outputLog.setText(PlayerName);				
 				tModel.setColumnIdentifiers(SeasoncolumnNames);
 				tModel.setRowCount(0);
-				PlayerStats2 Player = new PlayerStats2(PlayerName, tModel,PlayerArray);
+				PlayerStats2 Player = new PlayerStats2(PlayerName, tModel,PlayerArray,seasonStats,"TRB");
 				try {
 					Player.execute();
 				} catch (Exception e) {
@@ -613,13 +630,37 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		dataset.addSeries(series1);
 
 		return dataset;	}
-	private void refreshChart(JFreeChart A) {
-		RightPanel.removeAll();
-	    RightPanel.revalidate(); // This removes the old chart 
-	    ChartPanel chartPanel = new ChartPanel(A); 
-	    RightPanel.setLayout(new BorderLayout()); 
-	    RightPanel.add(chartPanel); 
-	    RightPanel.repaint(); // This method makes the new chart appear
+	private void refreshChart(String PlayerName,String Stat) {
+		DefaultTableModel tModel = (DefaultTableModel)_playerTable.getModel();
+		 final XYSeries series = new XYSeries("PPG");
+		 
+		for(int i = 0;i<tModel.getRowCount();i++) {
+			series.add((int)tModel.getValueAt(i, 0),(double)tModel.getValueAt(i,_playerTable.getColumn(Stat).getModelIndex() ));
+		}
+		    final XYSeriesCollection data = new XYSeriesCollection(series);
+		    final JFreeChart chart2 = ChartFactory.createXYLineChart(
+		        PlayerName,
+		        "Age", 
+		        Stat, 
+		        data,
+		        PlotOrientation.VERTICAL,
+		        true,
+		        true,
+		        false
+		    );
+		 
+
+	RightPanel.removeAll();
+   RightPanel.revalidate(); // This removes the old chart 
+   Shape cross = ShapeUtilities.createDiagonalCross(3, 1);
+   XYPlot xyPlot = (XYPlot) chart2.getPlot();
+   XYLineAndShapeRenderer renderer =
+   	    (XYLineAndShapeRenderer) xyPlot.getRenderer();
+   	renderer.setBaseShapesVisible(true);
+   chartPanel = new ChartPanel(chart2);
+   RightPanel.setLayout(new BoxLayout(RightPanel, BoxLayout.PAGE_AXIS)); 
+   RightPanel.add(chartPanel);
+   RightPanel.repaint();// This method makes the new chart appear
 	}
 
 }
