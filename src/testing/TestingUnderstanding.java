@@ -40,7 +40,7 @@ public class TestingUnderstanding {
 		String[] Lines = new String[50];
 		String FilePath = "C:/Users/Nikhil/Desktop/NBA PROJECT/SportStats/2016-2017 Stats.csv";
 		try {
-			br = new BufferedReader(new FileReader(FilePath));
+			br = new BufferedReader(new FileReader("Resources/2016-2017 Stats.csv"));
 			Lines[0] = "1";
 			//Processing Data only after we read the line #Data 
 			while ((line = br.readLine()) != null && !Lines[0].equals("Rk")) {
@@ -50,11 +50,10 @@ public class TestingUnderstanding {
 			while((line = br.readLine()) != null) {
 				// using tab as a separator
 				Lines = line.split(cvsSplitBy);
-				Lines[1] = Lines[1].substring(0, Lines[1].indexOf('\\'));
-				
-				PlayerData.add(new Player(Lines[1],Lines[2],Integer.parseInt(Lines[3]),Lines[4],Integer.parseInt(Lines[5]),Integer.parseInt(Lines[6]),
-						Double.parseDouble(Lines[24]),Double.parseDouble(Lines[23]),Double.parseDouble(Lines[29])));
-
+				String refname = Lines[1].substring(Lines[1].indexOf('\\')+1, Lines[1].length());
+				String playername = Lines[1].substring(0, Lines[1].indexOf('\\'));
+				PlayerData.add(new Player(playername,Lines[2],Integer.parseInt(Lines[3]),Lines[4],Integer.parseInt(Lines[5]),Integer.parseInt(Lines[6]),
+						Double.parseDouble(Lines[24]),Double.parseDouble(Lines[23]),Double.parseDouble(Lines[29]),refname));
 			}
 
 		} catch (FileNotFoundException e) {

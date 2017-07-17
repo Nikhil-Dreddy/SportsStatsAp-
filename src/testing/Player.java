@@ -27,6 +27,7 @@ public class Player {
 	protected   double Blocks;
 	protected   double PPG;
 	protected 	String Season;
+	protected 	String RefName;
 	public Player(String Name,String Pos,int Age,String Tm,int G,int GS,double MP,String FG,String FG2,String three,String threePA,String threepercent,int TRB,int AST,double Steal,double BLK) {
 		this.Name = Name;
 		this.Position = Pos;
@@ -61,8 +62,8 @@ public class Player {
 		String A = this.Name+" "+ this.Position+" "+this.Age+" "+this.Team+" "+this.GamesPlayed+" "+this.GamesStarted+" "+this.Assit+" "+this.TRB+" "+this.PPG;	
 		return A;
 	}
-	public Player(String Season,String Team,int G,int GS ,double MP,double assist,double TRB,double PPG,double Steals,double Blocks) {
-		this.Season = Season;
+	public Player(int Age,String Team,int G,int GS ,double MP,double assist,double TRB,double PPG,double Steals,double Blocks) {
+		this.Age = Age;
 		this.Team = Team;
 		this.GamesPlayed = G;
 		this.GamesStarted = GS;
@@ -73,4 +74,17 @@ public class Player {
 		this.Steals = Steals;
 		this.Blocks = Blocks;
 	}
+	public Player(String Name,String Pos,int Age,String Tm,int G,int GS,double AST,double TRB,double PPG,String RefName) {
+		this.Name = Name;
+		this.Position = Pos;
+		this.Team = Tm;
+		this.Age = Age;
+		this.GamesPlayed = G;
+		this.GamesStarted = GS;
+		this.Assit = AST;
+		this.TRB = TRB;
+		this.PPG = PPG;
+		this.RefName = RefName;
+	}
+	
 }

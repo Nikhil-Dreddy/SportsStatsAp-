@@ -1,15 +1,19 @@
 package testing;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Ellipse2D;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
@@ -30,7 +34,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
@@ -42,10 +45,25 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartFrame;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.data.xy.XYDataItem;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.util.ShapeUtilities;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
 
 public class SportsGUI extends JPanel implements TableModelListener {
 	/**
@@ -55,7 +73,7 @@ public class SportsGUI extends JPanel implements TableModelListener {
 	String[] coulmnNames = {"Name","Pos","Age","Team","GP","GS","AST","TRB","PPG"};
 	String[] Team = { "ATL", "BOS", "BRK", "CHI", "CHO","CLE","DAL","DEN","DET","GSW","HOU","IND","LAC","LAL","MEM","MIA","MIL","MIN","NOP"
 			,"NYK","OKC","ORL","PHI","PHO","POR","SAC","SAS","TOR","UTA","WAS","All Teams","Traded Players"};
-	String[] SeasoncolumnNames = {"Season","Team","GP","GS","MPG","STL","BLK","AST","TRB","PPG"};
+	String[] SeasoncolumnNames = {"Age","Team","GP","GS","MPG","STL","BLK","AST","TRB","PPG"};
 	TestingUnderstanding A = new TestingUnderstanding();
 	private JButton _updateBtn;
 	private JTextField _outputLog;
@@ -72,7 +90,10 @@ public class SportsGUI extends JPanel implements TableModelListener {
 	private JScrollPane playerScroll;
 	private JTable _playerTable;
 	private TableModelListener TeamListener;
-	ImageIcon myPicture =  new ImageIcon("C:/Users/Nikhil/Desktop/NBA PROJECT/SportStats/teamlogos/ABA.png");
+	private String RefName;
+	private JPanel chartPanel;
+	JFreeChart chart;
+	ImageIcon myPicture =  new ImageIcon("Resources/teamlogos/ABA.png");
 	public class TeamWorker extends SwingWorker<Void,Vector>{
 		private Object[] PlayerData;
 		private DefaultTableModel Table;
@@ -124,12 +145,14 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		private DefaultTableModel Table;
 		private ArrayList<Player> CurrentData;
 		private String Player;
+		private String refname;
 
-		public PlayerWorker(ArrayList<Player> PlayerData,String PlayerName,DefaultTableModel Table){
+		public PlayerWorker(ArrayList<Player> PlayerData,String PlayerName,DefaultTableModel Table,String refname){
 			this.CurrentData = PlayerData;
 			this.Player = PlayerName;
 			this.Table = Table;
 			this.PlayerData = new Object[8];
+			this.refname = refname;
 		}
 		@Override
 		protected Void doInBackground() throws Exception {
@@ -175,10 +198,10 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		@Override
 		protected Void doInBackground() throws Exception {
 			if(TeamName.equals( "All Teams")||TeamName.equals("Traded Players")) {
-				TeamIcon =  new ImageIcon("C:/Users/Nikhil/Desktop/NBA PROJECT/SportStats/teamlogos/ABA.png");
+				TeamIcon =  new ImageIcon("Resources/teamlogos/ABA.png");
 			}
 			else{
-				TeamIcon =  new ImageIcon("C:/Users/Nikhil/Desktop/NBA PROJECT/SportStats/teamlogos/"+TeamName+".png");
+				TeamIcon =  new ImageIcon("Resources/teamlogos/"+TeamName+".png");
 			}
 			publish(TeamIcon);
 			return null;
@@ -191,6 +214,128 @@ public class SportsGUI extends JPanel implements TableModelListener {
 			}
 		}
 	}
+
+	public class PlayerStats2 extends SwingWorker<Void,Vector>{
+		private Object[][] SeasonPlayerData;
+		private ArrayList<Player> PlayerData;
+		private String PlayerName;
+		private int i;
+		private DefaultTableModel Table;
+		private ArrayList<Player> CurrentData;
+		private String RefName;
+		public PlayerStats2(String PlayerName,DefaultTableModel Table,ArrayList<Player> CurrentData) {
+			this.PlayerName = PlayerName;
+			this.PlayerData = new ArrayList<Player>();
+			this.Table = Table;
+			this.SeasonPlayerData = new Object[10][8];
+			this.CurrentData = CurrentData;
+		}
+		@Override
+		protected Void doInBackground() throws Exception {
+			int i = 0;
+			for(Player B: CurrentData){
+				if(B.Name.equals(PlayerName)) {
+					this.RefName = B.RefName;
+					break;
+				}
+			}
+			char firstletter = this.RefName.charAt(0);
+			String Url = "http://www.basketball-reference.com/players/"+firstletter+"/"+this.RefName+".html";
+			Document doc =  Jsoup.connect(Url)
+					.userAgent( "mozilla/17.0")
+					.timeout(5000).get();
+			Elements Table = doc.select("table");
+			for(Element Row:Table.select("tr")) {
+				Elements A = Row.select("td");
+
+				if(A.isEmpty()||A.size() <=3) {
+					continue;
+				}
+				if(A.get(0).text().isEmpty()) {
+					break;
+				}
+
+				this.PlayerData.add(new Player(Integer.parseInt(A.get(0).text()),A.get(1).text(),Integer.parseInt(A.get(4).text())
+						,Integer.parseInt(A.get(5).text()),Double.parseDouble(A.get(6).text()),
+						Double.parseDouble(A.get(23).text()),Double.parseDouble(A.get(22).text()),Double.parseDouble(A.get(28).text())
+						,Double.parseDouble(A.get(24).text()),Double.parseDouble(A.get(25).text())));
+				i++;
+			}
+			for(Player A: this.PlayerData) {
+				Vector<Comparable> B = new Vector<Comparable>();
+				B.add(A.Age);
+				B.add(A.Team);
+				B.add(A.GamesPlayed);
+				B.add(A.GamesStarted);
+				B.add(A.MinutesPlayed);
+				B.add(A.Steals);
+				B.add(A.Blocks);
+				B.add(A.Assit);
+				B.add(A.TRB);
+				B.add(A.PPG);
+				publish(B);
+			}
+			return null;
+		}
+		protected void process(List<Vector> rowsList)
+		{			
+			for(Vector row : rowsList){
+				DefaultTableModel tModel = (DefaultTableModel)_playerTable.getModel();
+				boolean existsinTable = false;
+				for(int i =0;i<tModel.getRowCount();i++) {
+					if((int)tModel.getValueAt(i,0)== (int)row.get(0)) {
+						existsinTable = true;
+					}
+				}
+				if(!existsinTable) {
+				tModel.addRow(row);
+				tModel.fireTableDataChanged();
+				}
+			}
+			
+		}
+		@Override
+		protected void done() {
+			
+			    try {
+			        get();
+			    } catch (InterruptedException | ExecutionException ex) {
+			        ex.printStackTrace();
+			    }
+			
+			DefaultTableModel tModel = (DefaultTableModel)_playerTable.getModel();
+			 final XYSeries series = new XYSeries("PPG");
+			for(int i = 0;i<tModel.getRowCount();i++) {
+				series.add((int)tModel.getValueAt(i, 0),(double)tModel.getValueAt(i,9 ));
+			}
+			    final XYSeriesCollection data = new XYSeriesCollection(series);
+			    final JFreeChart chart2 = ChartFactory.createXYLineChart(
+			        this.PlayerName,
+			        "Age", 
+			        "Points Per Game", 
+			        data,
+			        PlotOrientation.VERTICAL,
+			        true,
+			        true,
+			        false
+			    );
+			 
+
+		RightPanel.removeAll();
+	    RightPanel.revalidate(); // This removes the old chart 
+	    Shape cross = ShapeUtilities.createDiagonalCross(3, 1);
+	    XYPlot xyPlot = (XYPlot) chart2.getPlot();
+	    XYLineAndShapeRenderer renderer =
+	    	    (XYLineAndShapeRenderer) xyPlot.getRenderer();
+	    	renderer.setBaseShapesVisible(true);
+	    chartPanel = new ChartPanel(chart2);
+	    RightPanel.setLayout(new BoxLayout(RightPanel, BoxLayout.PAGE_AXIS)); 
+	    RightPanel.add(chartPanel);
+	    RightPanel.repaint();// This method makes the new chart appear
+			
+		}
+	}
+
 
 	private ActionListener ComboListener = new ActionListener() {
 		@Override
@@ -217,18 +362,20 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		}
 
 	};
+
 	private ListSelectionListener PlayerSelect = (new ListSelectionListener(){
 		public void valueChanged(ListSelectionEvent event) {
 			// do some actions here, for example
 			// print first column value from selected row
+			DefaultTableModel tModel = (DefaultTableModel)_playerTable.getModel();
 			if(_table.getSelectedRow() == -1) {
 			}
 			else {
 				String PlayerName = _table.getValueAt(_table.getSelectedRow(), 0).toString();
-				_outputLog.setText(PlayerName);
-				DefaultTableModel tModel = (DefaultTableModel)_playerTable.getModel();
-				tModel.setRowCount(0); 
-				PlayerStats Player = new PlayerStats(PlayerName, tModel);
+				_outputLog.setText(PlayerName);				
+				tModel.setColumnIdentifiers(SeasoncolumnNames);
+				tModel.setRowCount(0);
+				PlayerStats2 Player = new PlayerStats2(PlayerName, tModel,PlayerArray);
 				try {
 					Player.execute();
 				} catch (Exception e) {
@@ -236,6 +383,7 @@ public class SportsGUI extends JPanel implements TableModelListener {
 					e.printStackTrace();
 				}
 			}
+
 		}
 	});
 	private ActionListener OutPutListener = new ActionListener() {
@@ -243,8 +391,8 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		public void actionPerformed(ActionEvent e) {
 			String PlayerName = _outputLog.getText();
 			DefaultTableModel tModel = (DefaultTableModel)_table.getModel();
-			tModel.setRowCount(0); 
-			PlayerWorker b = new PlayerWorker(PlayerArray,PlayerName,model);
+			tModel.setRowCount(0);
+			PlayerWorker b = new PlayerWorker(PlayerArray,PlayerName,model,"B");
 			b.execute();
 			TeamIconWorker Icon = new TeamIconWorker("ABA",picLabel);
 			Icon.execute();
@@ -270,12 +418,10 @@ public class SportsGUI extends JPanel implements TableModelListener {
 			String PlayerName = _outputLog.getText();
 			DefaultTableModel tModel = (DefaultTableModel)_table.getModel();
 			tModel.setRowCount(0); 
-			PlayerWorker b = new PlayerWorker(PlayerArray,PlayerName,model);
+			PlayerWorker b = new PlayerWorker(PlayerArray,PlayerName,model,"B");
 			b.execute();
 			TeamIconWorker Icon = new TeamIconWorker("ABA",picLabel);
 			Icon.execute();
-			RightPanel.repaint();
-			RightPanel.revalidate();
 			_table.getTableHeader().setReorderingAllowed(false);
 			_table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 			_table.getColumnModel().getColumn(0).setPreferredWidth(140);
@@ -307,8 +453,9 @@ public class SportsGUI extends JPanel implements TableModelListener {
 				return this.types[columnIndex];
 			}
 		};
-		TableModel playermodel = new DefaultTableModel(PlayerData,SeasoncolumnNames ){
-			Class[] types = { String.class, String.class, Integer.class,
+
+		TableModel playermodel = new DefaultTableModel(10,SeasoncolumnNames.length){
+			Class[] types = { Integer.class, String.class, Integer.class,
 					Integer.class,Double.class,Double.class,Double.class,Double.class,Double.class,Double.class,
 					Double.class,Double.class};
 			@Override
@@ -333,6 +480,7 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		splitPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
 		splitPane.setTopComponent(topPanel);         // at the top we want our "topPanel"
 		splitPane.setBottomComponent(westPanel);
+		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.PAGE_AXIS));
 		topPanel.add(scrollPane);
 		_outputLog.setMaximumSize(new Dimension(150,30));
 		TeamList.setMaximumSize(TeamList.getPreferredSize());
@@ -346,13 +494,22 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		westPanel.add(_outputLog,BorderLayout.SOUTH);
 		westPanel.add(_updateBtn,BorderLayout.EAST);
 		box.add(splitPane);
-		JPanel RightPanel = new JPanel(new BorderLayout());
+		JSplitPane PlayersplitPane = new JSplitPane();
+		JPanel TabelPanel = new JPanel();
+		 RightPanel = new JPanel(new BorderLayout());
+		PlayersplitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+		PlayersplitPane.setTopComponent(TabelPanel);
+		PlayersplitPane.setBottomComponent(RightPanel);
 		JTabbedPane tabbedPane = new JTabbedPane();
-		RightPanel.add(playerLabel);
-		RightPanel.add(playerScroll);
+		 chartPanel = createChartPanel();
+		PlayersplitPane.setEnabled(false);
+		PlayersplitPane.setLayout(new BoxLayout(PlayersplitPane, BoxLayout.PAGE_AXIS));
+		RightPanel.add(chartPanel);
+		TabelPanel.add(playerScroll);
 		_outputLog.setText(("Lebron Is Goat"));;
-		tabbedPane.addTab("topPanel", box);
-		tabbedPane.addTab("RightPanel", RightPanel);
+		scrollPane.setPreferredSize(new Dimension(_table.getPreferredSize().width,PlayersplitPane.getHeight()));
+		tabbedPane.addTab("TeamTab", box);
+		tabbedPane.addTab("PlayerTab",PlayersplitPane);
 		add(tabbedPane,BorderLayout.CENTER);
 	}
 
@@ -387,6 +544,7 @@ public class SportsGUI extends JPanel implements TableModelListener {
 	}
 
 	public static void main(String []args) {
+
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -406,13 +564,6 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		});
 
 	}
-	public void updateLabel(String Team) {
-		ImageIcon myPicture2 =  new ImageIcon("C:/Users/Nikhil/Desktop/thumbnails/Life of pablo.jpg");
-		picLabel = new JLabel(myPicture2);
-		RightPanel.add(picLabel, BorderLayout.CENTER);
-		revalidate();
-		repaint();
-	}
 
 	@Override
 	public void tableChanged(TableModelEvent e) {
@@ -429,7 +580,46 @@ public class SportsGUI extends JPanel implements TableModelListener {
 	public void PlayerTable(TableModel m) {
 		_playerTable = new JTable(m);
 		_playerTable.setDefaultEditor(Object.class, null);
-		_playerTable.setFillsViewportHeight(true);
+		_playerTable.setPreferredScrollableViewportSize(_playerTable.getPreferredSize());
 		_playerTable.setAutoCreateRowSorter(true);
 	}
+
+
+	private JPanel createChartPanel() {
+		String chartTitle = "Objects Movement Chart";
+		String xAxisLabel = "X";
+		String yAxisLabel = "Y";
+
+		XYDataset dataset = createDataset();
+
+		chart = ChartFactory.createXYLineChart(chartTitle,
+				xAxisLabel, yAxisLabel, dataset);
+
+		return new ChartPanel(chart);
+	}
+
+
+
+	private XYDataset createDataset() {
+		XYSeriesCollection dataset = new XYSeriesCollection();
+		XYSeries series1 = new XYSeries("Object 1");
+
+		series1.add(1.0, 2.0);
+		series1.add(2.0, 3.0);
+		series1.add(3.0, 2.5);
+		series1.add(3.5, 2.8);
+		series1.add(4.2, 6.0);
+
+		dataset.addSeries(series1);
+
+		return dataset;	}
+	private void refreshChart(JFreeChart A) {
+		RightPanel.removeAll();
+	    RightPanel.revalidate(); // This removes the old chart 
+	    ChartPanel chartPanel = new ChartPanel(A); 
+	    RightPanel.setLayout(new BorderLayout()); 
+	    RightPanel.add(chartPanel); 
+	    RightPanel.repaint(); // This method makes the new chart appear
+	}
+
 }
