@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -15,6 +16,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class TestingUnderstanding {
+	private ArrayList<Player> PlayerData = new ArrayList<Player>();
 	public Object[][] GetPlayerData() throws IOException {
 		ArrayList<Player> Player = this.intilazePlayerData();
 		Object[][] PlayerData = new Object[Player.size()][9];
@@ -33,7 +35,6 @@ public class TestingUnderstanding {
 	}
 	public ArrayList<Player> intilazePlayerData() throws IOException{
 		Map<String,Player> PlayerMap = new HashMap<String,Player>();
-		ArrayList<Player> PlayerData = new ArrayList<Player>();
 		BufferedReader br = null;
 		String line = "";
 		String cvsSplitBy = ",";
@@ -75,5 +76,7 @@ public class TestingUnderstanding {
 		}
 		return PlayerData;
 	}
+	
+	
 
 }
