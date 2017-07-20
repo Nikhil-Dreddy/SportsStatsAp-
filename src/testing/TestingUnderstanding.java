@@ -1,19 +1,14 @@
 package testing;
 
-import java.awt.List;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Vector;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 public class TestingUnderstanding {
 	private ArrayList<Player> PlayerData = new ArrayList<Player>();
@@ -34,14 +29,15 @@ public class TestingUnderstanding {
 		return PlayerData;
 	}
 	public ArrayList<Player> intilazePlayerData() throws IOException{
-		Map<String,Player> PlayerMap = new HashMap<String,Player>();
 		BufferedReader br = null;
 		String line = "";
 		String cvsSplitBy = ",";
 		String[] Lines = new String[50];
-		String FilePath = "C:/Users/Nikhil/Desktop/NBA PROJECT/SportStats/2016-2017 Stats.csv";
 		try {
-			br = new BufferedReader(new FileReader("Resources/2016-2017 Stats.csv"));
+			
+			InputStream in = getClass().getResourceAsStream("/res/2016-2017 Stats.csv"); 
+			br = new BufferedReader(new InputStreamReader(in));
+
 			Lines[0] = "1";
 			//Processing Data only after we read the line #Data 
 			while ((line = br.readLine()) != null && !Lines[0].equals("Rk")) {
@@ -74,7 +70,8 @@ public class TestingUnderstanding {
 				}
 			}
 		}
-		return PlayerData;
+		// add elements to al, including duplicates
+		return this.PlayerData;
 	}
 	
 	

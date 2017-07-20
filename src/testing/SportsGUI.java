@@ -9,16 +9,19 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Paint;
 import java.awt.Shape;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Ellipse2D;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 
+import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -86,7 +89,6 @@ public class SportsGUI extends JPanel implements TableModelListener {
 	private JTextField _compareText;
 	private Object[][] PlayerData;
 	private ArrayList<Player> PlayerArray = A.intilazePlayerData();
-	private Object[][] IntialData;
 	private JTable _table;
 	private JScrollPane scrollPane;
 	private final JPanel topPanel; // container panel for the top
@@ -96,29 +98,24 @@ public class SportsGUI extends JPanel implements TableModelListener {
 	private JPanel RightPanel;
 	private JScrollPane playerScroll;
 	private JTable _playerTable;
-	private TableModelListener TeamListener;
-	private String RefName;
 	private JPanel chartPanel;
 	private JComboBox graphBox;
 	private ArrayList<Player> seasonStats = new ArrayList<Player>();
 	private JFreeChart chart;
 	private int numberOfSeasons = 0;
-	ImageIcon myPicture =  new ImageIcon("Resources/teamlogos/ABA.png");
+	
+	ImageIcon myPicture =  new ImageIcon( SportsGUI.class.getResource(
+            "/res/ABA.png"));
 	public class TeamWorker extends SwingWorker<Void,Vector>{
-		private Object[] PlayerData;
-		private DefaultTableModel Table;
 		private ArrayList<Player> CurrentData;
 		private String Team;
 
 		public TeamWorker(ArrayList<Player> PlayerData,String TeamName,DefaultTableModel Table){
 			this.CurrentData = PlayerData;
 			this.Team = TeamName;
-			this.Table = Table;
-			this.PlayerData = new Object[8];
 		}
 		@Override
 		protected Void doInBackground() throws Exception {
-			int i = 0;
 			if(this.Team.equals("Traded Players")) {
 				this.Team = "TOT";
 			}
@@ -136,7 +133,6 @@ public class SportsGUI extends JPanel implements TableModelListener {
 					A.add(B.PPG);
 					publish(A);
 				}
-				i++;
 			}
 			return null;
 		}
@@ -160,22 +156,14 @@ public class SportsGUI extends JPanel implements TableModelListener {
 
 	}
 	public class PlayerWorker extends SwingWorker<Void,Vector>{
-		private Object[] PlayerData;
-		private DefaultTableModel Table;
 		private ArrayList<Player> CurrentData;
 		private String Player;
-		private String refname;
-
 		public PlayerWorker(ArrayList<Player> PlayerData,String PlayerName,DefaultTableModel Table,String refname){
 			this.CurrentData = PlayerData;
 			this.Player = PlayerName;
-			this.Table = Table;
-			this.PlayerData = new Object[8];
-			this.refname = refname;
 		}
 		@Override
 		protected Void doInBackground() throws Exception {
-			int i = 0;
 			for(Player B: CurrentData){
 				Vector<Comparable> A = new Vector<Comparable>();
 				if(B.Name.equals(Player)) {
@@ -190,7 +178,6 @@ public class SportsGUI extends JPanel implements TableModelListener {
 					A.add(B.PPG);
 					publish(A);
 				}
-				i++;
 			}
 			return null;
 		}
@@ -226,10 +213,10 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		@Override
 		protected Void doInBackground() throws Exception {
 			if(TeamName.equals( "All Teams")||TeamName.equals("Traded Players")) {
-				TeamIcon =  new ImageIcon("Resources/teamlogos/ABA.png");
+				TeamIcon =  new ImageIcon( SportsGUI.class.getResource("/res/ABA.png"));
 			}
 			else{
-				TeamIcon =  new ImageIcon("Resources/teamlogos/"+TeamName+".png");
+				TeamIcon =  new ImageIcon( SportsGUI.class.getResource("/res/"+TeamName+".png"));
 			}
 			publish(TeamIcon);
 			return null;
@@ -244,26 +231,20 @@ public class SportsGUI extends JPanel implements TableModelListener {
 	}
 
 	public class PlayerStats2 extends SwingWorker<Void,Vector>{
-		private Object[][] SeasonPlayerData;
 		private ArrayList<Player> PlayerData;
 		private String PlayerName;
-		private int i;
-		private DefaultTableModel Table;
 		private ArrayList<Player> CurrentData;
 		private String RefName;
 		private String Stat;
 		public PlayerStats2(String PlayerName,DefaultTableModel Table,ArrayList<Player> CurrentData,ArrayList<Player> A,String Stat) {
 			this.PlayerName = PlayerName;
 			this.PlayerData = A;
-			this.Table = Table;
-			this.SeasonPlayerData = new Object[10][8];
 			this.CurrentData = CurrentData;
 			this.Stat = Stat;
 
 		}
 		@Override
 		protected Void doInBackground() throws Exception {
-			int i = 0;
 			for(Player B: CurrentData){
 				if(B.Name.equals(PlayerName)) {
 					this.RefName = B.RefName;
@@ -306,7 +287,6 @@ public class SportsGUI extends JPanel implements TableModelListener {
 				B.add(A.PPG);
 				B.add(A.Name);
 				publish(B);
-				i++;
 			}
 			return null;
 		}
@@ -376,19 +356,15 @@ public class SportsGUI extends JPanel implements TableModelListener {
 
 
 	public class ComparePlayers extends SwingWorker<Void,Vector>{
-		private Object[][] SeasonPlayerData;
 		private ArrayList<Player> PlayerData;
 		private String PlayerName;
 		private int i;
-		private DefaultTableModel Table;
 		private ArrayList<Player> CurrentData;
 		private String RefName;
 		private String Stat;
 		public ComparePlayers(String PlayerName,DefaultTableModel Table,ArrayList<Player> CurrentData,ArrayList<Player> A,String Stat) {
 			this.PlayerName = PlayerName;
 			this.PlayerData = A;
-			this.Table = Table;
-			this.SeasonPlayerData = new Object[10][8];
 			this.CurrentData = CurrentData;
 			this.Stat = Stat;
 			this.i = this.PlayerData.size();
@@ -465,7 +441,7 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		public void actionPerformed(ActionEvent e) {
 			JComboBox cb = (JComboBox)e.getSource();
 			String Stat = (String)cb.getSelectedItem();
-			DefaultTableModel tModel = (DefaultTableModel)_playerTable.getModel();
+			_playerTable.getModel();
 			String PlayerName = _table.getValueAt(_table.getSelectedRow(), 0).toString();
 			refreshChart(PlayerName, Stat);
 		}
@@ -567,7 +543,6 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		TeamList.addActionListener(ComboListener);
 		_updateBtn.addActionListener(OutPutListener);
 		PlayerData = A.GetPlayerData();
-
 		TableModel model = new DefaultTableModel(PlayerData,coulmnNames){
 			Class[] types = { String.class, String.class, Integer.class,
 					String.class,Integer.class,Integer.class,Double.class,Double.class,Double.class };
@@ -788,7 +763,7 @@ public class SportsGUI extends JPanel implements TableModelListener {
 		RightPanel.repaint();// This method makes the new chart appear
 	}
 	private void CompareChart(String PlayerName,String Stat,int B) {
-		DefaultTableModel tModel = (DefaultTableModel)_playerTable.getModel();
+		_playerTable.getModel();
 		Stat = this.fieldNameConverter(Stat);
 		final XYSeries series = new XYSeries(_table.getValueAt(_table.getSelectedRow(), 0).toString());
 		final XYSeries series2 = new XYSeries(PlayerName);
